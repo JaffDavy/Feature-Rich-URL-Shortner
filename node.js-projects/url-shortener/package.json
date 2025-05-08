@@ -6,12 +6,19 @@
   "scripts": {
     "test": "dotenv -e .env -- mocha \"tests/**/*.test.js\" --timeout 10000",
     "start": "node --env-file=.env ./bin/www",
-    "dev": "nodemon --env-file=.env ./bin/www"
+    "dev": "dotenv nodemon ./bin/www"
   },
   "dependencies": {
     "cookie-parser": "~1.4.4",
     "debug": "~2.6.9",
+    "dotenv": "^16.5.0",
     "express": "~4.16.1",
-    "morgan": "~1.9.1"
+    "mongoose": "^8.14.1",
+    "morgan": "~1.9.1",
+    "nanoid": "^5.1.5",
+    "nodemon": "^3.1.10"
+  },
+  "devDependencies": {
+    "dotenv-cli": "^8.0.0"
   }
 }
