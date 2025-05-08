@@ -1,0 +1,17 @@
+{
+  "name": "url-shortener",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "dotenv -e .env -- mocha \"tests/**/*.test.js\" --timeout 10000",
+    "start": "node --env-file=.env ./bin/www",
+    "dev": "nodemon --env-file=.env ./bin/www"
+  },
+  "dependencies": {
+    "cookie-parser": "~1.4.4",
+    "debug": "~2.6.9",
+    "express": "~4.16.1",
+    "morgan": "~1.9.1"
+  }
+}
