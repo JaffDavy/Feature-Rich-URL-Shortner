@@ -11,6 +11,9 @@ import urlRoutes from './src/routes/url.routes.js';
 import redirectRoutes from './src/routes/redirect.routes.js';
 import { errorHandler } from './src/middleware/error.middleware.js';
 import { rateLimiter } from './src/middleware/rateLimit.middleware.js';
+import dotenv from 'dotenv';
+dotenv.config();
+
 
 // Initialize express app
 const app = express();
