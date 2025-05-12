@@ -9,6 +9,9 @@ const Dashboard = () => {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
+  const API_BASE = import.meta.env.VITE_API_URL 
+    || 'https://feature-rich-url-shortner-wlzz.onrender.com';
+
   const fetchUrls = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -17,7 +20,7 @@ const Dashboard = () => {
         return;
       }
 
-      const response = await fetch('https://xenacious-devina-jaffdavy-de32cf3b.koyeb.app/api/my-urls', {
+      const response = await fetch(`${API_BASE}/api/my-urls`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -41,7 +44,7 @@ const Dashboard = () => {
   const handleDelete = async (shortCode) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`https://xenacious-devina-jaffdavy-de32cf3b.koyeb.app/api/url/${shortCode}`, {
+      const response = await fetch(`${API_BASE}/api/url/${shortCode}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
