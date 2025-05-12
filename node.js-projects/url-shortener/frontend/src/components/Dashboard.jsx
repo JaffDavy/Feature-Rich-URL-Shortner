@@ -17,7 +17,7 @@ const Dashboard = () => {
         return;
       }
 
-      const response = await fetch('http://localhost:5000/api/my-urls', {
+      const response = await fetch('https://xenacious-devina-jaffdavy-de32cf3b.koyeb.app/api/my-urls', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -41,7 +41,7 @@ const Dashboard = () => {
   const handleDelete = async (shortCode) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/url/${shortCode}`, {
+      const response = await fetch(`https://xenacious-devina-jaffdavy-de32cf3b.koyeb.app/api/url/${shortCode}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
