@@ -1,8 +1,9 @@
+// CreateUrl.jsx
 import React, { useState } from 'react';
 import { Link } from 'lucide-react';
 import './CreateUrl.css';
 
-const CreateUrl = () => {
+const CreateUrl = ({ onUrlCreated }) => {
   const [formData, setFormData] = useState({
     longUrl: '',
     customCode: '',
@@ -22,7 +23,7 @@ const CreateUrl = () => {
     e.preventDefault();
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('https://xenacious-devina-jaffdavy-de32cf3b.koyeb.app/api/shorten', {
+      const response = await fetch('https://feature-rich-url-shortner-wlzz.onrender.com/api/shorten', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -40,6 +41,12 @@ const CreateUrl = () => {
       setSuccess(`Short URL created: ${data.data.shortUrl}`);
       setFormData({ longUrl: '', customCode: '', expiresAt: '' });
       setError('');
+
+      // ✅ Tell parent about the new URL
+      if (onUrlCreated) {
+        onUrlCreated(data.data);
+      }
+
     } catch (err) {
       setError(err.message || 'Failed to create short URL');
       setSuccess('');

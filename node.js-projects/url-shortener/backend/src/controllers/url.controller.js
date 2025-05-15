@@ -1,95 +1,77 @@
 import { nanoid } from 'nanoid';
 import validator from 'validator';
-import { Url } from '../models/url.model.js';
+import { createShortUrl, findUrlByShortCode, findUrlsByUserId, deleteUrlById  } from '../models/url.model.js';
 import { logger } from '../utils/logger.js';
 
 export const shortenUrl = async (req, res, next) => {
   try {
     const { longUrl, customCode, expiresAt } = req.body;
     const userId = req.user.id;
-    
-    // Validate longUrl
+
     if (!longUrl) {
       return res.status(400).json({
         success: false,
-        error: 'Please provide a URL to shorten'
+        error: 'Please provide a URL to shorten',
       });
     }
-    
-    // Check if URL is valid
+
     if (!validator.isURL(longUrl, { require_protocol: true })) {
       return res.status(400).json({
         success: false,
-        error: 'Please provide a valid URL with protocol (http:// or https://)'
+        error: 'Please provide a valid URL with protocol (http:// or https://)',
       });
     }
-    
+
     let shortCode = customCode ? customCode.trim() : nanoid(6);
-    
+
     if (customCode) {
       if (!/^[a-zA-Z0-9]+$/.test(shortCode)) {
         return res.status(400).json({
           success: false,
-          error: 'Custom code can only contain letters and numbers'
+          error: 'Custom code can only contain letters and numbers',
         });
       }
-      
-      // Check if custom code is already in use
-      const existingUrl = await Url.findOne({ shortCode });
+
+      const existingUrl = await findUrlByShortCode(shortCode);
       if (existingUrl) {
         return res.status(409).json({
           success: false,
-          error: 'This custom code is already in use'
+          error: 'This custom code is already in use',
         });
       }
     }
-    
-    // Create URL object
-    const url = new Url({
-      shortCode,
-      longUrl,
-      user: userId,
-      expiresAt: expiresAt ? new Date(expiresAt) : null
-    });
-    
-    // Validate expiresAt if provided
+
     if (expiresAt) {
       const expiryDate = new Date(expiresAt);
-      if (isNaN(expiryDate.getTime())) {
+      if (isNaN(expiryDate.getTime()) || expiryDate <= new Date()) {
         return res.status(400).json({
           success: false,
-          error: 'Invalid expiration date'
-        });
-      }
-      
-      // Ensure expiry date is in the future
-      if (expiryDate <= new Date()) {
-        return res.status(400).json({
-          success: false,
-          error: 'Expiration date must be in the future'
+          error: 'Invalid or past expiration date',
         });
       }
     }
-    
-    // Save URL to database
-    await url.save();
-    
-    // Generate shortUrl
+
+    const newUrl = await createShortUrl({
+      shortCode,
+      longUrl,
+      userId,
+      expiresAt: expiresAt ? new Date(expiresAt) : null,
+    });
+
     const shortUrl = `${process.env.BASE_URL}/s/${shortCode}`;
-    
-    // Return response
+
     res.status(201).json({
       success: true,
       data: {
-        id: url._id,
+        id: newUrl.id,
         shortCode,
         shortUrl,
         longUrl,
-        expiresAt: url.expiresAt,
-        createdAt: url.createdAt
-      }
+        expiresAt: newUrl.expires_at,
+        createdAt: newUrl.created_at,
+      },
     });
-    
+
     logger.info(`URL shortened: ${shortCode} -> ${longUrl} by user ${userId}`);
   } catch (error) {
     next(error);
@@ -99,27 +81,23 @@ export const shortenUrl = async (req, res, next) => {
 export const getMyUrls = async (req, res, next) => {
   try {
     const userId = req.user.id;
-    
-    // Find all URLs for user
-    const urls = await Url.find({ user: userId })
-      .sort({ createdAt: -1 });
-    
-    // Format response data
+
+    const urls = await findUrlsByUserId(userId);
+
     const formattedUrls = urls.map(url => ({
-      id: url._id,
-      shortCode: url.shortCode,
-      shortUrl: `${process.env.BASE_URL}/s/${url.shortCode}`,
-      longUrl: url.longUrl,
+      id: url.id,
+      shortCode: url.shortcode,
+      shortUrl: `${process.env.BASE_URL}/s/${url.shortcode}`,
+      longUrl: url.long_url,
       clicks: url.clicks,
-      expiresAt: url.expiresAt,
-      createdAt: url.createdAt
+      expiresAt: url.expires_at,
+      createdAt: url.created_at,
     }));
-    
-    // Return response
+
     res.status(200).json({
       success: true,
       count: urls.length,
-      data: formattedUrls
+      data: formattedUrls,
     });
   } catch (error) {
     next(error);
@@ -130,39 +108,35 @@ export const getUrlStats = async (req, res, next) => {
   try {
     const { shortCode } = req.params;
     const userId = req.user.id;
-    
-    // Find URL
-    const url = await Url.findOne({ shortCode });
-    
-    // Check if URL exists
+
+    const url = await findUrlByShortCode(shortCode);
+
     if (!url) {
       return res.status(404).json({
         success: false,
-        error: 'URL not found'
+        error: 'URL not found',
       });
     }
-    
-    // Check if user owns the URL
-    if (url.user.toString() !== userId) {
+
+    if (url.user_id !== userId) {
       return res.status(403).json({
         success: false,
-        error: 'Not authorized to access this URL stats'
+        error: 'Not authorized to access this URL stats',
       });
     }
-    
-    // Return stats
+
     res.status(200).json({
       success: true,
       data: {
-        id: url._id,
-        shortCode: url.shortCode,
-        shortUrl: `${process.env.BASE_URL}/s/${url.shortCode}`,
-        longUrl: url.longUrl,
+        id: url.id,
+        shortCode: url.shortcode,
+        shortUrl: `${process.env.BASE_URL}/s/${url.shortcode}`,
+        longUrl: url.long_url,
         clicks: url.clicks,
-        expiresAt: url.expiresAt,
-        createdAt: url.createdAt,
-        isExpired: url.expiresAt && url.expiresAt < new Date()
-      }
+        expiresAt: url.expires_at,
+        createdAt: url.created_at,
+        isExpired: url.expires_at && new Date(url.expires_at) < new Date(),
+      },
     });
   } catch (error) {
     next(error);
@@ -173,35 +147,30 @@ export const deleteUrl = async (req, res, next) => {
   try {
     const { shortCode } = req.params;
     const userId = req.user.id;
-    
-    // Find URL
-    const url = await Url.findOne({ shortCode });
-    
-    // Check if URL exists
+
+    const url = await findUrlByShortCode(shortCode);
+
     if (!url) {
       return res.status(404).json({
         success: false,
-        error: 'URL not found'
+        error: 'URL not found',
       });
     }
-    
-    // Check if user owns the URL
-    if (url.user.toString() !== userId) {
+
+    if (url.user_id !== userId) {
       return res.status(403).json({
         success: false,
-        error: 'Not authorized to delete this URL'
+        error: 'Not authorized to delete this URL',
       });
     }
-    
-    // Delete URL
-    await url.deleteOne();
-    
-    // Return response
+
+    await deleteUrlById(url.id);
+
     res.status(200).json({
       success: true,
-      data: {}
+      data: {},
     });
-    
+
     logger.info(`URL deleted: ${shortCode} by user ${userId}`);
   } catch (error) {
     next(error);

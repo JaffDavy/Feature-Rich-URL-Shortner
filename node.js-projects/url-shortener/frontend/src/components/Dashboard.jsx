@@ -1,3 +1,4 @@
+// Dashboard.jsx
 import React, { useState, useEffect } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { Link, Trash2, LogOut, BarChart2 } from 'lucide-react';
@@ -55,7 +56,7 @@ const Dashboard = () => {
         throw new Error('Failed to delete URL');
       }
 
-      setUrls(urls.filter(url => url.shortCode !== shortCode));
+      setUrls(prev => prev.filter(url => url.shortCode !== shortCode));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete URL');
     }
@@ -64,6 +65,11 @@ const Dashboard = () => {
   const handleLogout = () => {
     localStorage.removeItem('token');
     navigate('/login');
+  };
+
+  // 👇 Function to add a new URL to the state
+  const handleAddUrl = (newUrl) => {
+    setUrls(prev => [newUrl, ...prev]); // prepend new url to the list
   };
 
   return (
@@ -79,7 +85,8 @@ const Dashboard = () => {
       </header>
 
       <main className="dashboard-main">
-        <CreateUrl />
+        {/* ✅ Pass the function to CreateUrl */}
+        <CreateUrl onUrlCreated={handleAddUrl} />
 
         <div className="urls-section">
           <h2>Your Short URLs</h2>

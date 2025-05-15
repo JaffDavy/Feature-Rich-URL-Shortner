@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import { User } from '../models/users.model.js';
+import { findUserById } from '../models/users.model.js';
 import { logger } from '../utils/logger.js';
 
 // Protect routes - require authentication
@@ -7,12 +7,10 @@ export const protect = async (req, res, next) => {
   try {
     let token;
     
-    // Check for token in headers
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
       token = req.headers.authorization.split(' ')[1];
     }
     
-    // Verify token exists
     if (!token) {
       return res.status(401).json({ 
         success: false, 
@@ -21,19 +19,18 @@ export const protect = async (req, res, next) => {
     }
     
     try {
-      // Verify token
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       
-      // Add user to request object
-      req.user = await User.findById(decoded.id).select('-password');
+      const user = await findUserById(decoded.id);
       
-      if (!req.user) {
+      if (!user) {
         return res.status(401).json({ 
           success: false, 
           error: 'Unauthorized - User no longer exists' 
         });
       }
-      
+
+      req.user = user;
       next();
     } catch (error) {
       logger.error(`Authentication error: ${error.message}`);
