@@ -25,20 +25,27 @@ pool.connect()
   .catch(err => console.error('PostgreSQL connection error:', err));
 
 
-const allowedOrigins = [
-  'http://localhost:5173',
-  'https://feature-rich-url-shortner-h4q38bl86-jaffdavys-projects.vercel.app',
-  'https://feature-rich-url-shortner-601nfasnm-jaffdavys-projects.vercel.app',
-];
+  const allowedOrigins = [
+    'http://localhost:5173',
+    'https://feature-rich-url-shortner-qc2ex8zfp-jaffdavys-projects.vercel.app',
+    'https://feature-rich-url-shortner.vercel.app' // fallback default
+  ];
+  
+  app.use(cors({
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    credentials: true,
+  }));
+  
 
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-
-app.use(cors({
-  origin: 'https://feature-rich-url-shortner-wlzz.onrender.com',
-  credentials: true,
-}));
 
 app.use(helmet());
 app.use(morgan('dev'));
