@@ -36,7 +36,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 app.use(cors({
-  origin: 'https://feature-rich-url-shortner-26uesct5d-jaffdavys-projects.vercel.app',
+  origin: 'https://feature-rich-url-shortner-wlzz.onrender.com',
   credentials: true,
 }));
 
