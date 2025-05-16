@@ -3,7 +3,6 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import 'dotenv/config';
-import connectDB from './src/config/db.js';
 import { logger } from './src/utils/logger.js';
 import { setupSwagger } from './src/config/swagger.js';
 import authRoutes from './src/routes/auth.routes.js';
@@ -19,19 +18,30 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Connect to MongoDB
-// connectDB();
+import pool from './src/config/db.js';
+
+pool.connect()
+  .then(() => console.log('Connected to PostgreSQL'))
+  .catch(err => console.error('PostgreSQL connection error:', err));
+
 
 const allowedOrigins = [
   'http://localhost:5173',
-  'https://feature-rich-url-shortner-h4q38bl86-jaffdavys-projects.vercel.app/login',
+  'https://feature-rich-url-shortner-h4q38bl86-jaffdavys-projects.vercel.app',
+  'https://feature-rich-url-shortner-601nfasnm-jaffdavys-projects.vercel.app',
 ];
 
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cors({
-  origin: allowedOrigins,
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
 }));
 app.use(helmet());
