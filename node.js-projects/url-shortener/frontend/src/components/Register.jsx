@@ -12,21 +12,20 @@ const Register = () => {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
+  const API_BASE = import.meta.env.VITE_API_URL 
+    || 'https://feature-rich-url-shortner-wlzz.onrender.com';
+
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
     });
-
-
-
-    
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('http://localhost:5000/api/auth/register', {
+      const response = await fetch(`${API_BASE}/api/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -54,6 +53,7 @@ const Register = () => {
           <UserPlus size={32} />
           <h2>Register</h2>
         </div>
+
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label htmlFor="username">Username</label>
@@ -65,8 +65,10 @@ const Register = () => {
               onChange={handleChange}
               required
               minLength={3}
+              autoComplete="username"
             />
           </div>
+
           <div className="form-group">
             <label htmlFor="email">Email</label>
             <input
@@ -76,8 +78,10 @@ const Register = () => {
               value={formData.email}
               onChange={handleChange}
               required
+              autoComplete="email"
             />
           </div>
+
           <div className="form-group">
             <label htmlFor="password">Password</label>
             <input
@@ -88,13 +92,17 @@ const Register = () => {
               onChange={handleChange}
               required
               minLength={6}
+              autoComplete="new-password"
             />
           </div>
+
           {error && <div className="error">{error}</div>}
+
           <button type="submit" className="btn btn-primary">
             Register
           </button>
         </form>
+
         <p className="login-link">
           Already have an account? <Link to="/login">Login</Link>
         </p>

@@ -1,3 +1,4 @@
+// Dashboard.jsx
 import React, { useState, useEffect } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { Link, Trash2, LogOut, BarChart2 } from 'lucide-react';
@@ -9,6 +10,9 @@ const Dashboard = () => {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
+  const API_BASE = import.meta.env.VITE_API_URL 
+    || 'https://feature-rich-url-shortner-wlzz.onrender.com';
+
   const fetchUrls = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -17,7 +21,7 @@ const Dashboard = () => {
         return;
       }
 
-      const response = await fetch('http://localhost:5000/api/my-urls', {
+      const response = await fetch(`${API_BASE}/api/my-urls`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -41,7 +45,7 @@ const Dashboard = () => {
   const handleDelete = async (shortCode) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/url/${shortCode}`, {
+      const response = await fetch(`${API_BASE}/api/url/${shortCode}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -52,7 +56,7 @@ const Dashboard = () => {
         throw new Error('Failed to delete URL');
       }
 
-      setUrls(urls.filter(url => url.shortCode !== shortCode));
+      setUrls(prev => prev.filter(url => url.shortCode !== shortCode));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete URL');
     }
@@ -61,6 +65,11 @@ const Dashboard = () => {
   const handleLogout = () => {
     localStorage.removeItem('token');
     navigate('/login');
+  };
+
+  // 👇 Function to add a new URL to the state
+  const handleAddUrl = (newUrl) => {
+    setUrls(prev => [newUrl, ...prev]); // prepend new url to the list
   };
 
   return (
@@ -76,7 +85,8 @@ const Dashboard = () => {
       </header>
 
       <main className="dashboard-main">
-        <CreateUrl />
+        {/* ✅ Pass the function to CreateUrl */}
+        <CreateUrl onUrlCreated={handleAddUrl} />
 
         <div className="urls-section">
           <h2>Your Short URLs</h2>
