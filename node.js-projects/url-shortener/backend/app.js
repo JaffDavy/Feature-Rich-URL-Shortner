@@ -22,10 +22,18 @@ const PORT = process.env.PORT || 3000;
 // Connect to MongoDB
 // connectDB();
 
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://feature-rich-url-shortner-h4q38bl86-jaffdavys-projects.vercel.app/login',
+];
+
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(cors());
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true,
+}));
 app.use(helmet());
 app.use(morgan('dev'));
 
@@ -56,6 +64,11 @@ process.on('unhandledRejection', (err) => {
   logger.error(`Unhandled Rejection: ${err.message}`);
   // Close server & exit process
   process.exit(1);
+});
+
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ success: false, error: 'Server error' });
 });
 
 export default app;

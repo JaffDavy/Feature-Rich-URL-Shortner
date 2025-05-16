@@ -64,6 +64,7 @@ export const login = async (req, res, next) => {
         error: 'Invalid credentials',
       });
     }
+    console.log('Found user:', user);
 
     const isMatch = await matchPassword(password, user.password);
 
@@ -88,6 +89,7 @@ export const login = async (req, res, next) => {
       },
     });
   } catch (error) {
+    console.error('Login error:', error)
     next(error);
   }
 };
